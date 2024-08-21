@@ -1,7 +1,7 @@
 {
   "name": "mdrazamani/asanpardakht-ipg-rest",
   "description": "AsanPardakht IPG REST API integration package",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "library",
   "autoload": {
     "psr-4": {
