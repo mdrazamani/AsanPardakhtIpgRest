@@ -35,13 +35,13 @@ jobs:
         id: extract_version
         run: echo "VERSION=$(jq -r .version composer.json)" >> $GITHUB_ENV
 
-      # - name: Create GitHub Release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then \
-      #       echo "Tag v${{ env.VERSION }} already exists, skipping tag creation."; \
-      #     else \
-      #       git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"; \
-      #       git push origin --tags; \
-      #     fi
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then \
+            echo "Tag v${{ env.VERSION }} already exists, skipping tag creation."; \
+          else \
+            git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"; \
+            git push origin --tags; \
+          fi
