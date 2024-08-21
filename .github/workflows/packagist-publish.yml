@@ -39,5 +39,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"
-          git push origin --tags
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then \
+            echo "Tag v${{ env.VERSION }} already exists, skipping tag creation."; \
+          else \
+            git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"; \
+            git push origin --tags; \
+          fi
