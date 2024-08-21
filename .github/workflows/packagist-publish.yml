@@ -31,9 +31,13 @@ jobs:
           composer config --global http-basic.repo.packagist.com ${{ secrets.PACKAGIST_USERNAME }} ${{ secrets.PACKAGIST_TOKEN }}
           composer update
 
+      - name: Extract Version from composer.json
+        id: extract_version
+        run: echo "VERSION=$(jq -r .version composer.json)" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag -a v$(composer show -s | grep version | awk '{print $2}') -m "Release version $(composer show -s | grep version | awk '{print $2}')"
+          git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"
           git push origin --tags
