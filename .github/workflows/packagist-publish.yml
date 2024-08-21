@@ -1,0 +1,43 @@
+name: Auto Increment Version and Publish to Packagist
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          extensions: mbstring, intl, dom
+
+      - name: Increment version
+        run: |
+          chmod +x ./versioning.sh
+          ./versioning.sh
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add VERSION
+          git commit -m "Bump version to $(cat VERSION)"
+          git tag "v$(cat VERSION)"
+          git push origin --tags
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist
+
+      - name: Run Tests
+        run: vendor/bin/phpunit
+
+      - name: Publish to Packagist
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
+        run: |
+          composer config --global --auth http-basic.repo.packagist.com ${{ secrets.PACKAGIST_USERNAME }} ${{ secrets.PACKAGIST_TOKEN }}
+          composer update
