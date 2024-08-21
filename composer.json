@@ -1,0 +1,20 @@
+{
+  "name": "mdrazamani/asanpardakht-ipg-rest",
+  "description": "Laravel package for Asan Pardakht IPG REST API integration.",
+  "autoload": {
+    "psr-4": {
+      "mdrazamani\\AsanPardakhtIpgRest\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "mdrazamani\\AsanPardakhtIpgRest\\AsanPardakhtIpgRestServiceProvider"
+      ]
+    }
+  },
+  "require": {
+    "php": "^7.4|^8.0",
+    "guzzlehttp/guzzle": "^7.0"
+  }
+}
