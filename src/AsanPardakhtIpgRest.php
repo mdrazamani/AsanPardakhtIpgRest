@@ -5,8 +5,6 @@ namespace mdrazamani\AsanPardakhtIpgRest;
 use GuzzleHttp\Client;
 use DateTime;
 
-// AsanPardakhtIpgRest
-
 class AsanPardakhtIpgRest
 {
     private const URL = 'https://ipgrest.asanpardakht.ir';
