@@ -70,8 +70,8 @@ $settlementResponse = app('asanpardakht')->settlement($transactionId);
 
 ## Methods Overview
 
-. init($invoiceId, $amount): Initializes the payment with the given invoice ID and amount.
-. token(): Generates a payment token.
-. verify($transactionId): Verifies the transaction.
-. settlement($transactionId): Processes the settlement for the given transaction.
-. redirect($token, $mobile = null): Redirects the user to the payment gateway.
+- `init($invoiceId, $amount)`: Initializes the payment with the given invoice ID and amount.
+- `token()`: Generates a payment token.
+- `verify($transactionId)`: Verifies the transaction.
+- `settlement($transactionId)`: Processes the settlement for the given transaction.
+- `redirect($token, $mobile = null)`: Redirects the user to the payment gateway.
