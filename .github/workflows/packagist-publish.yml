@@ -1,4 +1,4 @@
-name: Publish to Packagist
+name: Publish Package to GitHub and Packagist
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
@@ -23,9 +24,17 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --no-suggest --prefer-dist
 
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          composer config repositories.repo-name composer https://github.com/${{ github.repository }} && \
+          composer config --global github-oauth.github.com ${{ secrets.GITHUB_TOKEN }} && \
+          composer publish
+
       - name: Publish to Packagist
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: |
-          composer config --global --auth http-basic.repo.packagist.com ${{ secrets.PACKAGIST_USERNAME }} ${{ secrets.PACKAGIST_TOKEN }}
+          composer config --global http-basic.repo.packagist.com ${{ secrets.PACKAGIST_USERNAME }} ${{ secrets.PACKAGIST_TOKEN }} && \
           composer update

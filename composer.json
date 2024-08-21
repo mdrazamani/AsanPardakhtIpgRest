@@ -1,16 +1,11 @@
 {
   "name": "mdrazamani/asanpardakht-ipg-rest",
-  "description": "Laravel package for Asan Pardakht IPG REST API integration.",
+  "description": "AsanPardakht IPG REST API integration package",
+  "version": "1.0.8",
+  "type": "library",
   "autoload": {
     "psr-4": {
       "mdrazamani\\AsanPardakhtIpgRest\\": "src/"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "mdrazamani\\AsanPardakhtIpgRest\\AsanPardakhtIpgRestServiceProvider"
-      ]
     }
   },
   "require": {
@@ -19,5 +14,18 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packagist.org"
+    }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [
+        "mdrazamani\\AsanPardakhtIpgRest\\AsanPardakhtIpgRestServiceProvider"
+      ]
+    }
   }
 }
