@@ -1,9 +1,11 @@
-name: Publish Package to Packagist
+name: Publish to Packagist
 
 on:
   push:
     branches:
       - main
+    tags:
+      - "v*.*.*"
 
 jobs:
   release:
