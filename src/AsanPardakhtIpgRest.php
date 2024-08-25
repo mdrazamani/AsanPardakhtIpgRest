@@ -67,21 +67,42 @@ class AsanPardakhtIpgRest
             'merchantConfigurationId' => $this->config['merchantConfigID'],
             'payGateTranId' => $transId
         ];
-
       
-
         return $this->callAPI('POST', 'v1/Settlement', $data);
     }
 
 
     public function tranResult()
     {
-        $res = $this->callAPI('GET','v1/Settlement?'.http_build_query([
+        try {
+          
+            $url = 'v1/TranResult?' . http_build_query([
                 'merchantConfigurationId' => $this->config['merchantConfigID'],
                 'localInvoiceId' => $this->transactionId
-            ]));
-        return ['code' => $res['code'],'content' => json_decode($res['content'],true)];
+            ]);
+    
+          
+            $res = $this->callAPI('GET', $url);
+    
+     
+            if (isset($res['code']) && isset($res['content'])) {
+                return [
+                    'code' => $res['code'],
+                    'content' => json_decode($res['content'], true)
+                ];
+            } else {
+               
+                throw new \Exception('Invalid API response format');
+            }
+        } catch (\Exception $e) {
+           
+            return [
+                'code' => 500,
+                'error' => $e->getMessage()
+            ];
+        }
     }
+    
 
 
     public function redirect($token, $mobile = null)
