@@ -11,21 +11,19 @@ class AsanPardakhtIpgRest
 
     private $client;
     private $config;
+    private $transactionId;
+    private $amount;
 
     public function __construct(array $config)
     {
         $this->client = new Client(['base_uri' => self::URL]);
         $this->config = $config;
-        
-    
     }
 
     public function init($transactionId, $amount)
     {
         $this->transactionId = $transactionId;
         $this->amount = $amount;
-
-       
 
         return $this;
     }
@@ -44,9 +42,7 @@ class AsanPardakhtIpgRest
             'additionalData' => '',
         ];
 
-      
-
-        return $this->callAPI('POST', 'v1/Token', $data);
+        return $this->callAPI('POST', 'v1/Token', ['json' => $data]);
     }
 
     public function verify($transId)
@@ -56,56 +52,49 @@ class AsanPardakhtIpgRest
             'payGateTranId' => $transId,
         ];
 
-      
-
-        return $this->callAPI('POST', 'v1/Verify', $data);
+        return $this->callAPI('POST', 'v1/Verify', ['json' => $data]);
     }
 
     public function settlement($transId)
     {
         $data = [
             'merchantConfigurationId' => $this->config['merchantConfigID'],
-            'payGateTranId' => $transId
+            'payGateTranId' => $transId,
         ];
-      
-        return $this->callAPI('POST', 'v1/Settlement', $data);
-    }
 
+        return $this->callAPI('POST', 'v1/Settlement', ['json' => $data]);
+    }
 
     public function tranResult()
-{
-    try {
-        
-        $res = $this->callAPI('GET', 'v1/TranResult', [
-            'query' => [
-                'merchantConfigurationId' => $this->config['merchantConfigID'],
-                'localInvoiceId' => $this->transactionId
-            ]
-        ]);
+    {
+        try {
+            $res = $this->callAPI('GET', 'v1/TranResult', [
+                'query' => [
+                    'merchantConfigurationId' => $this->config['merchantConfigID'],
+                    'localInvoiceId' => $this->transactionId
+                ]
+            ]);
 
-       
-        if (isset($res['code']) && isset($res['content'])) {
+            if (isset($res['code']) && isset($res['content'])) {
+                return [
+                    'code' => $res['code'],
+                    'content' => json_decode($res['content'], true)
+                ];
+            } else {
+                throw new \Exception('Invalid API response format');
+            }
+        } catch (\Exception $e) {
             return [
-                'code' => $res['code'],
-                'content' => json_decode($res['content'], true)
+                'code' => 500,
+                'error' => $e->getMessage()
             ];
-        } else {
-            throw new \Exception('Invalid API response format');
         }
-    } catch (\Exception $e) {
-        return [
-            'code' => 500, 
-            'error' => $e->getMessage()
-        ];
     }
-}
 
     public function redirect($token, $mobile = null)
     {
-       
-
         echo '<html><body><script language="javascript" type="text/javascript">
-            function postRefId(refIdValue,mobile) {
+            function postRefId(refIdValue, mobile) {
                 var form = document.createElement("form");
                 form.setAttribute("method", "POST");
                 form.setAttribute("action", "https://asan.shaparak.ir");
@@ -135,19 +124,15 @@ class AsanPardakhtIpgRest
                 'Pwd' => $this->config['password'],
             ];
 
-            if ($method === 'GET') {
-         
-                $response = $this->client->request($method, $endpoint, [
-                    'query' => $options['query'] ?? [],
-                    'headers' => $headers,
-                ]);
-            } else {
-               
-                $response = $this->client->request($method, $endpoint, [
-                    'json' => $options['json'] ?? [],
-                    'headers' => $headers,
-                ]);
+            $requestOptions = ['headers' => $headers];
+
+            if ($method === 'GET' && isset($options['query'])) {
+                $requestOptions['query'] = $options['query'];
+            } elseif ($method !== 'GET' && isset($options['json'])) {
+                $requestOptions['json'] = $options['json'];
             }
+
+            $response = $this->client->request($method, $endpoint, $requestOptions);
 
             return json_decode($response->getBody(), true);
         } catch (\Exception $e) {
