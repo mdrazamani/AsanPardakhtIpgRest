@@ -73,37 +73,32 @@ class AsanPardakhtIpgRest
 
 
     public function tranResult()
-    {
-        try {
-          
-            $url = 'v1/TranResult?' . http_build_query([
+{
+    try {
+        
+        $res = $this->callAPI('GET', 'v1/TranResult', [
+            'query' => [
                 'merchantConfigurationId' => $this->config['merchantConfigID'],
                 'localInvoiceId' => $this->transactionId
-            ]);
-    
-          
-            $res = $this->callAPI('GET', $url);
-    
-     
-            if (isset($res['code']) && isset($res['content'])) {
-                return [
-                    'code' => $res['code'],
-                    'content' => json_decode($res['content'], true)
-                ];
-            } else {
-               
-                throw new \Exception('Invalid API response format');
-            }
-        } catch (\Exception $e) {
-           
-            return [
-                'code' => 500,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-    
+            ]
+        ]);
 
+       
+        if (isset($res['code']) && isset($res['content'])) {
+            return [
+                'code' => $res['code'],
+                'content' => json_decode($res['content'], true)
+            ];
+        } else {
+            throw new \Exception('Invalid API response format');
+        }
+    } catch (\Exception $e) {
+        return [
+            'code' => 500, 
+            'error' => $e->getMessage()
+        ];
+    }
+}
 
     public function redirect($token, $mobile = null)
     {
@@ -131,26 +126,31 @@ class AsanPardakhtIpgRest
         </script></body></html>';
     }
 
-    protected function callAPI($method, $endpoint, $data = [])
+    protected function callAPI($method, $endpoint, $options = [])
     {
         try {
-           
+            $headers = [
+                'Accept' => 'application/json',
+                'Usr' => $this->config['username'],
+                'Pwd' => $this->config['password'],
+            ];
 
-            $response = $this->client->request($method, $endpoint, [
-                'json' => $data,
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Usr' => $this->config['username'],
-                    'Pwd' => $this->config['password'],
-                ],
-            ]);
-
-          
+            if ($method === 'GET') {
+         
+                $response = $this->client->request($method, $endpoint, [
+                    'query' => $options['query'] ?? [],
+                    'headers' => $headers,
+                ]);
+            } else {
+               
+                $response = $this->client->request($method, $endpoint, [
+                    'json' => $options['json'] ?? [],
+                    'headers' => $headers,
+                ]);
+            }
 
             return json_decode($response->getBody(), true);
         } catch (\Exception $e) {
-            
-
             return ['error' => $e->getMessage(), 'code' => $e->getCode()];
         }
     }
