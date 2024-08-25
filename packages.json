@@ -3,8 +3,8 @@
     "mdrazamani/asanpardakht-ipg-rest": {
       "1.0.15": {
         "name": "mdrazamani/asanpardakht-ipg-rest",
-        "version": "1.0.24",
-        "version_normalized": "1.0.24.0",
+        "version": "1.0.25",
+        "version_normalized": "1.0.25.0",
         "source": {
           "type": "git",
           "url": "https://github.com/mdrazamani/AsanPardakhtIpgRest.git",

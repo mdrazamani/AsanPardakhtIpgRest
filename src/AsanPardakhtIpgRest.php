@@ -1,6 +1,6 @@
 <?php 
 
-namespace mdrazamani\AsanPardakhtIpgRest;
+namespace App\Lib;
 
 use GuzzleHttp\Client;
 use DateTime;
@@ -66,89 +66,49 @@ class AsanPardakhtIpgRest implements JsonSerializable
         return $this->callAPI('POST', 'v1/Settlement', ['json' => $data]);
     }
 
-    // public function tranResult()
-    // {
-    //     try {
-    //         $res = $this->callAPI('GET', 'v1/TranResult', [
-    //             'query' => [
-    //                 'merchantConfigurationId' => $this->config['merchantConfigID'],
-    //                 'localInvoiceId' => $this->transactionId
-    //             ]
-    //         ]);
-    
-    //         error_log('Raw tranResult API response: ' . print_r($res, true));
-    
-    //         if (is_array($res) && isset($res['code']) && isset($res['content'])) {
-    //             return [
-    //                 'code' => $res['code'],
-    //                 'content' => json_decode($res['content'], true)
-    //             ];
-    //         } else {
-    //             error_log('Invalid API response format: ' . print_r($res, true));
-    //             throw new \Exception('Invalid API response format');
-    //         }
-    //     } catch (\Exception $e) {
-    //         error_log('Error in tranResult: ' . $e->getMessage());
-    //         error_log('Stack trace: ' . $e->getTraceAsString());
-    
-    //         return [
-    //             'code' => 500,
-    //             'error' => $e->getMessage()
-    //         ];
-    //     }
-    // }
-
-
     public function tranResult()
     {
         try {
-            
-            $url = self::URL . '/v1/TranResult?' . http_build_query([
-                'merchantConfigurationId' => $this->config['merchantConfigID'],
-                'localInvoiceId' => $this->transactionId
+            $res = $this->callAPI('GET', 'v1/TranResult', [
+                'query' => [
+                    'merchantConfigurationId' => $this->config['merchantConfigID'],
+                    'localInvoiceId' => $this->transactionId
+                ]
             ]);
-
     
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                'Accept: application/json',
-                'Usr: ' . $this->config['username'],
-                'Pwd: ' . $this->config['password']
-            ]);
-
-            $response = curl_exec($curl);
-            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
-
-            
-            if (curl_errno($curl)) {
-                return [
-                    'code' => curl_errno($curl),
-                    'error' => curl_error($curl)
-                ];
-            }
-
-            if ($httpcode == 200) {
-                return [
-                    'code' => 200,
-                    'content' => json_decode($response, true)
-                ];
+            error_log('Raw tranResult API response: ' . print_r($res, true));
+    
+            // Check if the response is an array and contains the expected keys
+            if (is_array($res['content'])) {
+                // Since the response doesn't have 'code' and 'content', we'll directly check the structure
+                if (isset($res['content']['payGateTranID']) && isset($res['content']['rrn'])) {
+                    // Assume the request was successful if these keys exist
+                    return [
+                        'code' => 200, // Assuming 200 is the success code
+                        'content' => $res['content'] // Return the whole response as content
+                    ];
+                } else {
+                    // If essential fields are missing, consider it as an error
+                    error_log('Missing essential fields in API response: ' . print_r($res, true));
+                    throw new \Exception('Essential fields missing in API response');
+                }
             } else {
-                return [
-                    'code' => $httpcode,
-                    'error' => 'Unexpected HTTP code received'
-                ];
+                error_log('Invalid API response format: ' . print_r($res, true));
+                throw new \Exception('Invalid API response format');
             }
         } catch (\Exception $e) {
+            error_log('Error in tranResult: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+    
             return [
                 'code' => 500,
                 'error' => $e->getMessage()
             ];
         }
     }
+    
+
+
 
 
 
@@ -193,13 +153,25 @@ class AsanPardakhtIpgRest implements JsonSerializable
                 $requestOptions['json'] = $options['json'];
             }
 
+            // Send the request and get the response
             $response = $this->client->request($method, $endpoint, $requestOptions);
 
-            return json_decode($response->getBody(), true);
+            // Get the status code from the response
+            $statusCode = $response->getStatusCode();
+
+            // Parse the response body
+            $body = json_decode($response->getBody(), true);
+
+            // Return both the status code and the parsed body
+            return [
+                'code' => $statusCode,
+                'content' => $body
+            ];
         } catch (\Exception $e) {
             return ['error' => $e->getMessage(), 'code' => $e->getCode()];
         }
     }
+
 
     // Implementing the JsonSerializable interface to control JSON serialization
     public function jsonSerialize(): mixed
