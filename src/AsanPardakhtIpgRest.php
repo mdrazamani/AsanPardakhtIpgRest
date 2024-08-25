@@ -66,37 +66,91 @@ class AsanPardakhtIpgRest implements JsonSerializable
         return $this->callAPI('POST', 'v1/Settlement', ['json' => $data]);
     }
 
+    // public function tranResult()
+    // {
+    //     try {
+    //         $res = $this->callAPI('GET', 'v1/TranResult', [
+    //             'query' => [
+    //                 'merchantConfigurationId' => $this->config['merchantConfigID'],
+    //                 'localInvoiceId' => $this->transactionId
+    //             ]
+    //         ]);
+    
+    //         error_log('Raw tranResult API response: ' . print_r($res, true));
+    
+    //         if (is_array($res) && isset($res['code']) && isset($res['content'])) {
+    //             return [
+    //                 'code' => $res['code'],
+    //                 'content' => json_decode($res['content'], true)
+    //             ];
+    //         } else {
+    //             error_log('Invalid API response format: ' . print_r($res, true));
+    //             throw new \Exception('Invalid API response format');
+    //         }
+    //     } catch (\Exception $e) {
+    //         error_log('Error in tranResult: ' . $e->getMessage());
+    //         error_log('Stack trace: ' . $e->getTraceAsString());
+    
+    //         return [
+    //             'code' => 500,
+    //             'error' => $e->getMessage()
+    //         ];
+    //     }
+    // }
+
+
     public function tranResult()
     {
         try {
-            $res = $this->callAPI('GET', 'v1/TranResult', [
-                'query' => [
-                    'merchantConfigurationId' => $this->config['merchantConfigID'],
-                    'localInvoiceId' => $this->transactionId
-                ]
+            
+            $url = self::URL . '/v1/TranResult?' . http_build_query([
+                'merchantConfigurationId' => $this->config['merchantConfigID'],
+                'localInvoiceId' => $this->transactionId
             ]);
+
     
-            error_log('Raw tranResult API response: ' . print_r($res, true));
-    
-            if (is_array($res) && isset($res['code']) && isset($res['content'])) {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                'Usr: ' . $this->config['username'],
+                'Pwd: ' . $this->config['password']
+            ]);
+
+            $response = curl_exec($curl);
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            curl_close($curl);
+
+            
+            if (curl_errno($curl)) {
                 return [
-                    'code' => $res['code'],
-                    'content' => json_decode($res['content'], true)
+                    'code' => curl_errno($curl),
+                    'error' => curl_error($curl)
+                ];
+            }
+
+            if ($httpcode == 200) {
+                return [
+                    'code' => 200,
+                    'content' => json_decode($response, true)
                 ];
             } else {
-                error_log('Invalid API response format: ' . print_r($res, true));
-                throw new \Exception('Invalid API response format');
+                return [
+                    'code' => $httpcode,
+                    'error' => 'Unexpected HTTP code received'
+                ];
             }
         } catch (\Exception $e) {
-            error_log('Error in tranResult: ' . $e->getMessage());
-            error_log('Stack trace: ' . $e->getTraceAsString());
-    
             return [
                 'code' => 500,
                 'error' => $e->getMessage()
             ];
         }
     }
+
+
 
     public function redirect($token, $mobile = null)
     {
