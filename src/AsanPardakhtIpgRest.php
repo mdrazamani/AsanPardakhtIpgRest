@@ -4,8 +4,9 @@ namespace mdrazamani\AsanPardakhtIpgRest;
 
 use GuzzleHttp\Client;
 use DateTime;
+use JsonSerializable;
 
-class AsanPardakhtIpgRest
+class AsanPardakhtIpgRest implements JsonSerializable
 {
     private const URL = 'https://ipgrest.asanpardakht.ir';
 
@@ -74,16 +75,22 @@ class AsanPardakhtIpgRest
                     'localInvoiceId' => $this->transactionId
                 ]
             ]);
-
-            if (isset($res['code']) && isset($res['content'])) {
+    
+            error_log('Raw tranResult API response: ' . print_r($res, true));
+    
+            if (is_array($res) && isset($res['code']) && isset($res['content'])) {
                 return [
                     'code' => $res['code'],
                     'content' => json_decode($res['content'], true)
                 ];
             } else {
+                error_log('Invalid API response format: ' . print_r($res, true));
                 throw new \Exception('Invalid API response format');
             }
         } catch (\Exception $e) {
+            error_log('Error in tranResult: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+    
             return [
                 'code' => 500,
                 'error' => $e->getMessage()
@@ -139,4 +146,15 @@ class AsanPardakhtIpgRest
             return ['error' => $e->getMessage(), 'code' => $e->getCode()];
         }
     }
+
+    // Implementing the JsonSerializable interface to control JSON serialization
+    public function jsonSerialize(): mixed
+    {
+        return [
+            'transactionId' => $this->transactionId,
+            'amount' => $this->amount,
+            'config' => $this->config,
+        ];
+    }
+
 }
