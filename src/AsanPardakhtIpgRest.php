@@ -17,21 +17,15 @@ class AsanPardakhtIpgRest
         $this->client = new Client(['base_uri' => self::URL]);
         $this->config = $config;
         
-        // Log initialization
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('AsanPardakhtIpgRest initialized with config', $config);
-        }
+    
     }
 
-    public function init($invoiceId, $amount)
+    public function init($transactionId, $amount)
     {
-        $this->invoiceId = $invoiceId;
+        $this->transactionId = $transactionId;
         $this->amount = $amount;
 
-        // Log init method
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('Init method called', ['invoiceId' => $invoiceId, 'amount' => $amount]);
-        }
+       
 
         return $this;
     }
@@ -42,18 +36,15 @@ class AsanPardakhtIpgRest
         $data = [
             'serviceTypeId' => 1,
             'merchantConfigurationId' => $this->config['merchantConfigID'],
-            'localInvoiceId' => $this->invoiceId,
+            'localInvoiceId' => $this->transactionId,
             'amountInRials' => $this->amount,
             'localDate' => (new DateTime('now', new \DateTimeZone('Asia/Tehran')))->format('Ymd His'),
-            'callbackURL' => $callbackUrl . http_build_query(['invoice' => $this->invoiceId]),
+            'callbackURL' => $callbackUrl . http_build_query(['invoice' => $this->transactionId]),
             'paymentId' => 0,
             'additionalData' => '',
         ];
 
-        // Log token method call
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('Token method called with data', $data);
-        }
+      
 
         return $this->callAPI('POST', 'v1/Token', $data);
     }
@@ -65,10 +56,7 @@ class AsanPardakhtIpgRest
             'payGateTranId' => $transId,
         ];
 
-        // Log verify method call
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('Verify method called with data', $data);
-        }
+      
 
         return $this->callAPI('POST', 'v1/Verify', $data);
     }
@@ -80,19 +68,25 @@ class AsanPardakhtIpgRest
             'payGateTranId' => $transId
         ];
 
-        // Log settlement method call
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('Settlement method called with data', $data);
-        }
+      
 
         return $this->callAPI('POST', 'v1/Settlement', $data);
     }
 
+
+    public function tranResult()
+    {
+        $res = $this->callAPI('GET','v1/Settlement?'.http_build_query([
+                'merchantConfigurationId' => $this->config['merchantConfigID'],
+                'localInvoiceId' => $this->transactionId
+            ]));
+        return ['code' => $res['code'],'content' => json_decode($res['content'],true)];
+    }
+
+
     public function redirect($token, $mobile = null)
     {
-        if (class_exists('\Illuminate\Support\Facades\Log')) {
-            \Illuminate\Support\Facades\Log::info('Redirect method called', ['token' => $token, 'mobile' => $mobile]);
-        }
+       
 
         echo '<html><body><script language="javascript" type="text/javascript">
             function postRefId(refIdValue,mobile) {
@@ -119,9 +113,7 @@ class AsanPardakhtIpgRest
     protected function callAPI($method, $endpoint, $data = [])
     {
         try {
-            if (class_exists('\Illuminate\Support\Facades\Log')) {
-                \Illuminate\Support\Facades\Log::info('callAPI method called', ['method' => $method, 'endpoint' => $endpoint, 'data' => $data]);
-            }
+           
 
             $response = $this->client->request($method, $endpoint, [
                 'json' => $data,
@@ -132,15 +124,11 @@ class AsanPardakhtIpgRest
                 ],
             ]);
 
-            if (class_exists('\Illuminate\Support\Facades\Log')) {
-                \Illuminate\Support\Facades\Log::info('API response received', ['response_body' => (string) $response->getBody()]);
-            }
+          
 
             return json_decode($response->getBody(), true);
         } catch (\Exception $e) {
-            if (class_exists('\Illuminate\Support\Facades\Log')) {
-                \Illuminate\Support\Facades\Log::error('API call failed', ['error' => $e->getMessage(), 'code' => $e->getCode()]);
-            }
+            
 
             return ['error' => $e->getMessage(), 'code' => $e->getCode()];
         }

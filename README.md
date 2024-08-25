@@ -57,7 +57,7 @@ $gateway->redirect($response['token']);
 After the user returns to your site, verify the transaction:
 
 ```php
-$verifyResponse = app('asanpardakht')->verify($transactionId);
+$verifyResponse = app('asanpardakht')->verify($transactionIdd);
 ```
 
 ### 3. Process Settlement
@@ -65,13 +65,13 @@ $verifyResponse = app('asanpardakht')->verify($transactionId);
 Once the transaction is verified, you can process the settlement:
 
 ```php
-$settlementResponse = app('asanpardakht')->settlement($transactionId);
+$settlementResponse = app('asanpardakht')->settlement($transactionIdd);
 ```
 
 ## Methods Overview
 
 - `init($invoiceId, $amount)`: Initializes the payment with the given invoice ID and amount.
 - `token()`: Generates a payment token.
-- `verify($transactionId)`: Verifies the transaction.
-- `settlement($transactionId)`: Processes the settlement for the given transaction.
+- `verify($transactionIdd)`: Verifies the transaction.
+- `settlement($transactionIdd)`: Processes the settlement for the given transaction.
 - `redirect($token, $mobile = null)`: Redirects the user to the payment gateway.
